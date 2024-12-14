@@ -1,0 +1,69 @@
+---
+- name: Webserver setup
+  hosts: web01
+  become: yes
+  vars:
+    python_version: python3
+    venv_path: /path/to/venv
+
+  tasks:
+    - name: Update package cache
+      apt:
+        update_cache: true
+
+    - name: Install required system packages
+      apt:
+        name:
+          - python3-pip
+          - python3-dev
+          - libpq-dev
+          - postgresql
+          - postgresql-contrib
+          - nginx
+          - "{{ python_version }}"
+          - "{{ python_version }}-venv"
+        state: present
+
+    - name: Create virtual environment
+      command: "{{ python_version }} -m venv {{ venv_path }}"
+      args:
+        creates: "{{ venv_path }}/bin/activate"
+
+    - name: Install Python packages in virtual environment
+      pip:
+        name:
+          - django
+          - gunicorn
+          - psycopg2-binary
+          - scikit-learn
+        virtualenv: "{{ venv_path }}"
+
+    - name: Copy Django website to host machine
+      copy:
+        src: ~/django_and_ml_intergration/titanic_ML/titanic
+        dest: /django_and_ml_intergration/titanic_ML
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Update ALLOWED_HOSTS in settings.py
+      lineinfile:
+        path: /django_and_ml_intergration/titanic_ML/titanic/titanic/settings.py
+        regexp: '^ALLOWED_HOSTS = .*'
+        line: 'ALLOWED_HOSTS = ["44.204.96.173"]'
+        backup: yes
+
+    - name: Update TEMPLATES directory in settings.py
+      lineinfile:
+        path: /django_and_ml_intergration/titanic_ML/titanic/titanic/settings.py
+        regexp: "^\\s*'DIRS':\\s*\\[.*\\],"
+        line: "        'DIRS': ['/django_and_ml_intergration/titanic_ML/titanic/templates'],"
+        backup: yes
+      become: yes
+
+    - name: Run Django development server
+      shell: |
+        source {{ venv_path }}/bin/activate
+        python3 /django_and_ml_intergration/titanic_ML/titanic/manage.py runserver 0.0.0.0:8000
+      args:
+        executable: /bin/bash
