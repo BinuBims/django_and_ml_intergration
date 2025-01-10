@@ -16,6 +16,22 @@ spec:
     spec:
       containers:
       - name: django-container
-        image: 590183878038.dkr.ecr.us-east-1.amazonaws.com/django-site:latest
+        image: binubims/django-site:v1.0
         ports:
-        - containerPort: 80
+        - containerPort: 8080
+
+        env:
+        - name: PIPELINE
+          value: "production"
+        - name: SECRET_KEY
+          value: "your_secret_key"
+        - name: DB_NAME
+          value: "."
+        - name: DB_USER_NM
+          value: "."
+        - name: DB_USER_PW
+          value: "."
+        - name: DB_IP
+          value: "0.0.0.0"
+        - name: DB_PORT
+          value: "5432"
