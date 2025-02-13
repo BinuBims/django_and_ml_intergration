@@ -14,12 +14,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-
       - name: Build Docker image
         run: docker build ./dockerizing_django/titanic -t ${{ secrets.DOCKER_HUB_USERNAME }}/django-eks:latest .
 
